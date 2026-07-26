@@ -3,153 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculator App</title>
+<title>Yarn Count Calculator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <style>
-  body {
-    background: linear-gradient(135deg, #84fab0, #8fd3f4);
-    font-family: "Poppins", sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-  }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
 
-  .calculator {
-    background: #fff;
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    width: 320px;
-  }
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    background:linear-gradient(135deg,#0f172a,#1e293b,#334155);
+    overflow:hidden;
+}
 
-  input {
-    width: 100%;
-    height: 60px;
-    font-size: 1.6rem;
-    text-align: right;
-    border: none;
-    outline: none;
-    margin-bottom: 12px;
-    padding: 10px;
-    border-radius: 8px;
-    background: #f0f0f0;
-  }
+/* Decorative Background */
+body::before,
+body::after{
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    filter:blur(80px);
+    z-index:0;
+}
 
-  .buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-  }
+body::before{
+    width:300px;
+    height:300px;
+    background:#38bdf8;
+    top:-100px;
+    left:-100px;
+    opacity:.3;
+}
 
-  button {
-    height: 60px;
-    font-size: 1.2rem;
-    border: none;
-    border-radius: 8px;
-    background: #e0e0e0;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
+body::after{
+    width:300px;
+    height:300px;
+    background:#f59e0b;
+    bottom:-100px;
+    right:-100px;
+    opacity:.3;
+}
 
-  button:hover {
-    background: #d1d1d1;
-  }
+.container{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:420px;
+}
 
-  .equal {
-    background: #6c63ff;
-    color: white;
-  }
+.result-card{
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:28px;
+    padding:30px 20px;
+    text-align:center;
+    box-shadow:0 20px 40px rgba(0,0,0,0.25);
+    margin-bottom:20px;
+}
 
-  .equal:hover {
-    background: #5a53e0;
-  }
+.result-label{
+    color:#cbd5e1;
+    letter-spacing:3px;
+    font-size:14px;
+    margin-bottom:10px;
+}
 
-  .clear {
-    background: #ff5c8a;
-    color: white;
-  }
+.result-value{
+    font-size:52px;
+    font-weight:700;
+    color:#fbbf24;
+    transition:.3s;
+}
 
-  .clear:hover {
-    background: #e64b74;
-  }
+.result-unit{
+    color:#e2e8f0;
+    margin-top:5px;
+    font-size:15px;
+}
 
-  .undo {
-    background: #ffa931;
-    color: white;
-  }
+.form-card{
+    background:white;
+    border-radius:28px;
+    padding:25px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.2);
+}
 
-  .undo:hover {
-    background: #f18c00;
-  }
+.title{
+    text-align:center;
+    font-size:24px;
+    font-weight:700;
+    color:#0f172a;
+    margin-bottom:20px;
+}
+
+.input-group{
+    margin-bottom:16px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    color:#334155;
+    font-weight:600;
+    font-size:14px;
+}
+
+input{
+    width:100%;
+    padding:14px 16px;
+    border:2px solid #e2e8f0;
+    border-radius:14px;
+    font-size:16px;
+    outline:none;
+    transition:.3s;
+}
+
+input:focus{
+    border-color:#3b82f6;
+    box-shadow:0 0 0 4px rgba(59,130,246,.15);
+}
+
+.footer{
+    text-align:center;
+    margin-top:18px;
+    color:#64748b;
+    font-size:13px;
+}
+
+.yarn-icon{
+    font-size:32px;
+    margin-bottom:10px;
+}
+
+@media(max-width:480px){
+    .result-value{
+        font-size:42px;
+    }
+}
 </style>
 </head>
 <body>
 
-<div class="calculator">
-  <input type="text" id="display" readonly>
-  <div class="buttons">
-    <button onclick="clearDisplay()" class="clear">C</button>
-    <button onclick="appendValue('/')">÷</button>
-    <button onclick="appendValue('*')">×</button>
-    <button onclick="deleteLast()">⌫</button>
+<div class="container">
 
-    <button onclick="appendValue('7')">7</button>
-    <button onclick="appendValue('8')">8</button>
-    <button onclick="appendValue('9')">9</button>
-    <button onclick="appendValue('-')">−</button>
+    <div class="result-card">
+        <div class="yarn-icon">🧵</div>
+        <div class="result-label">LIVE YARN COUNT</div>
+        <div class="result-value" id="result">0.00</div>
+        <div class="result-unit">Count</div>
+    </div>
 
-    <button onclick="appendValue('4')">4</button>
-    <button onclick="appendValue('5')">5</button>
-    <button onclick="appendValue('6')">6</button>
-    <button onclick="appendValue('+')">+</button>
+    <div class="form-card">
+        <div class="title">Yarn Count Calculator</div>
 
-    <button onclick="appendValue('1')">1</button>
-    <button onclick="appendValue('2')">2</button>
-    <button onclick="appendValue('3')">3</button>
-    <button onclick="calculate()" class="equal">=</button>
+        <div class="input-group">
+            <label>🧵 Number of Yarns</label>
+            <input
+                type="number"
+                id="yarns"
+                placeholder="Enter number of yarns"
+                oninput="calculateCount()">
+        </div>
 
-    <button onclick="appendValue('0')">0</button>
-    <button onclick="appendValue('.')">.</button>
-    <!-- 👇 New Undo Button -->
-    <button onclick="undoLast()" class="undo">↩️ Undo</button>
-  </div>
+        <div class="input-group">
+            <label>📏 Length of 1 Yarn (cm)</label>
+            <input
+                type="number"
+                id="length"
+                placeholder="Enter length in cm"
+                oninput="calculateCount()">
+        </div>
+
+        <div class="input-group">
+            <label>⚖️ Weight of All Yarns (g)</label>
+            <input
+                type="number"
+                id="weight"
+                placeholder="Enter weight in grams"
+                oninput="calculateCount()">
+        </div>
+
+        <div class="footer">
+            Formula: (0.0059 × Yarns × Length) ÷ Weight
+        </div>
+    </div>
+
 </div>
 
 <script>
-  const display = document.getElementById('display');
-  let history = []; // 👈 store previous results here
+function calculateCount() {
 
-  function appendValue(value) {
-    display.value += value;
-  }
+    const yarns = parseFloat(document.getElementById("yarns").value);
+    const length = parseFloat(document.getElementById("length").value);
+    const weight = parseFloat(document.getElementById("weight").value);
 
-  function clearDisplay() {
-    display.value = '';
-  }
-
-  function deleteLast() {
-    display.value = display.value.slice(0, -1);
-  }
-
-  function calculate() {
-    try {
-      // Save current value before calculating (for undo)
-      history.push(display.value);
-      display.value = eval(display.value);
-    } catch {
-      display.value = 'Error';
+    if (
+        isNaN(yarns) ||
+        isNaN(length) ||
+        isNaN(weight) ||
+        weight <= 0
+    ) {
+        document.getElementById("result").textContent = "0.00";
+        return;
     }
-  }
 
-  // 👇 Undo the last calculation
-  function undoLast() {
-    if (history.length > 0) {
-      display.value = history.pop(); // restore last expression
-    } else {
-      display.value = ''; // if nothing left to undo
-    }
-  }
+    const count =
+        (0.0059 * yarns * length) / weight;
+
+    document.getElementById("result").textContent =
+        count.toFixed(2);
+}
 </script>
 
 </body>
