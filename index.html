@@ -1,229 +1,1047 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yarn Count Calculator</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>3D Document Book Organizer</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons for UI Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
-}
-
-body{
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-    background:linear-gradient(135deg,#0f172a,#1e293b,#334155);
-    overflow:hidden;
-}
-
-/* Decorative Background */
-body::before,
-body::after{
-    content:"";
-    position:absolute;
-    border-radius:50%;
-    filter:blur(80px);
-    z-index:0;
-}
-
-body::before{
-    width:300px;
-    height:300px;
-    background:#38bdf8;
-    top:-100px;
-    left:-100px;
-    opacity:.3;
-}
-
-body::after{
-    width:300px;
-    height:300px;
-    background:#f59e0b;
-    bottom:-100px;
-    right:-100px;
-    opacity:.3;
-}
-
-.container{
-    position:relative;
-    z-index:1;
-    width:100%;
-    max-width:420px;
-}
-
-.result-card{
-    background:rgba(255,255,255,0.1);
-    backdrop-filter:blur(20px);
-    border:1px solid rgba(255,255,255,0.15);
-    border-radius:28px;
-    padding:30px 20px;
-    text-align:center;
-    box-shadow:0 20px 40px rgba(0,0,0,0.25);
-    margin-bottom:20px;
-}
-
-.result-label{
-    color:#cbd5e1;
-    letter-spacing:3px;
-    font-size:14px;
-    margin-bottom:10px;
-}
-
-.result-value{
-    font-size:52px;
-    font-weight:700;
-    color:#fbbf24;
-    transition:.3s;
-}
-
-.result-unit{
-    color:#e2e8f0;
-    margin-top:5px;
-    font-size:15px;
-}
-
-.form-card{
-    background:white;
-    border-radius:28px;
-    padding:25px;
-    box-shadow:0 20px 40px rgba(0,0,0,0.2);
-}
-
-.title{
-    text-align:center;
-    font-size:24px;
-    font-weight:700;
-    color:#0f172a;
-    margin-bottom:20px;
-}
-
-.input-group{
-    margin-bottom:16px;
-}
-
-label{
-    display:block;
-    margin-bottom:8px;
-    color:#334155;
-    font-weight:600;
-    font-size:14px;
-}
-
-input{
-    width:100%;
-    padding:14px 16px;
-    border:2px solid #e2e8f0;
-    border-radius:14px;
-    font-size:16px;
-    outline:none;
-    transition:.3s;
-}
-
-input:focus{
-    border-color:#3b82f6;
-    box-shadow:0 0 0 4px rgba(59,130,246,.15);
-}
-
-.footer{
-    text-align:center;
-    margin-top:18px;
-    color:#64748b;
-    font-size:13px;
-}
-
-.yarn-icon{
-    font-size:32px;
-    margin-bottom:10px;
-}
-
-@media(max-width:480px){
-    .result-value{
-        font-size:42px;
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            dark: {
+              950: '#070a11',
+              900: '#0b0f19',
+              800: '#131a29',
+              700: '#1e293b',
+              600: '#334155',
+            }
+          }
+        }
+      }
     }
-}
-</style>
+  </script>
+
+  <style>
+    :root {
+      /* Increased dimension proportions for large, crisp document readability */
+      --sheet-w: 290px;
+      --sheet-h: 430px;
+    }
+
+    @media (min-width: 640px) {
+      :root {
+        --sheet-w: 360px;
+        --sheet-h: 530px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      :root {
+        --sheet-w: 440px;
+        --sheet-h: 640px;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 30%, #171f32 0%, #070a11 100%);
+      color: #f3f4f6;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    /* 3D Scene and Stage Layer */
+    .viewport-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 2200px;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .viewport-canvas.panning {
+      cursor: grabbing;
+    }
+
+    .viewport-canvas.mode-turn {
+      cursor: default;
+    }
+
+    /* Transformable World containing book */
+    .world-container {
+      position: absolute;
+      transform-style: preserve-3d;
+      will-change: transform;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.08s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    .world-container.animating {
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* The Dual-Wing 3D Book Anchor */
+    .book-spine-anchor {
+      position: relative;
+      width: 0;
+      height: var(--sheet-h);
+      transform-style: preserve-3d;
+    }
+
+    /* Ultra-clean realistic spine fold & shadow (Replacing the bulky blue tube) */
+    .book-spine-crease {
+      position: absolute;
+      left: -2px;
+      top: -2px;
+      width: 4px;
+      height: calc(100% + 4px);
+      background: rgba(10, 15, 26, 0.85);
+      box-shadow: 
+        0 0 10px 3px rgba(0, 0, 0, 0.75),
+        -6px 0 12px rgba(0, 0, 0, 0.4),
+        6px 0 12px rgba(0, 0, 0, 0.4);
+      border-radius: 2px;
+      z-index: 90;
+      pointer-events: none;
+      transform: translateZ(1px);
+    }
+
+    /* Center deep groove shadow for book fold realism */
+    .book-spine-crease::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(255,255,255,0.08) 50%, rgba(0,0,0,0.8));
+    }
+
+    /* 3D Sheets */
+    .sheet {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--sheet-w);
+      height: var(--sheet-h);
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: transform 0.62s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .sheet.dragging {
+      transition: none !important;
+    }
+
+    /* Page Faces: Edge-to-edge layout */
+    .page-face {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      background: #0f172a;
+      color: #0f172a;
+      border-radius: 2px 10px 10px 2px;
+      box-shadow: 
+        0 14px 35px -5px rgba(0, 0, 0, 0.6),
+        inset 5px 0 18px rgba(0, 0, 0, 0.25),
+        inset -1px 0 5px rgba(0,0,0,0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-face.back {
+      transform: rotateY(180deg);
+      border-radius: 10px 2px 2px 10px;
+      box-shadow: 
+        0 14px 35px -5px rgba(0, 0, 0, 0.6),
+        inset -5px 0 18px rgba(0, 0, 0, 0.25),
+        inset 1px 0 5px rgba(0,0,0,0.1);
+    }
+
+    /* Lighting Shader Overlays for 3D realism */
+    .face-shade {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      opacity: 0;
+      z-index: 15;
+    }
+
+    .page-face.front .face-shade {
+      background: linear-gradient(90deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.06) 35%, rgba(0,0,0,0.2) 100%);
+    }
+
+    .page-face.back .face-shade {
+      background: linear-gradient(-90deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.06) 35%, rgba(0,0,0,0.2) 100%);
+    }
+
+    /* Spine Binding Crease shadow overlay on each page edge */
+    .page-face.front::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 24px;
+      background: linear-gradient(90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 40%, transparent 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .page-face.back::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 24px;
+      background: linear-gradient(-90deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.15) 40%, transparent 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Realistic Soft Shadow underneath Book */
+    .book-drop-shadow {
+      position: absolute;
+      width: calc(var(--sheet-w) * 2.2);
+      height: 45px;
+      left: calc(var(--sheet-w) * -1.1);
+      bottom: -32px;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0) 75%);
+      filter: blur(10px);
+      transform: translateZ(-25px) rotateX(90deg);
+      pointer-events: none;
+    }
+
+    /* Front Cover Finish */
+    .sheet.cover-front .page-face.front {
+      background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #090d16 100%);
+      color: #e0e7ff;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+  </style>
 </head>
-<body>
 
-<div class="container">
+<body class="h-screen w-screen flex flex-col justify-between overflow-hidden select-none bg-dark-950 text-slate-100">
 
-    <div class="result-card">
-        <div class="yarn-icon">🧵</div>
-        <div class="result-label">LIVE YARN COUNT</div>
-        <div class="result-value" id="result">0.00</div>
-        <div class="result-unit">Count</div>
+  <header class="relative z-30 flex items-center justify-between px-3 sm:px-5 py-2.5 bg-dark-900/85 backdrop-blur-md border-b border-white/10">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-600/30">
+        <i class="ph-bold ph-book-open text-lg sm:text-xl text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-xs sm:text-sm font-semibold tracking-wide text-white leading-tight">Docu3D Organizer</h1>
+        <p class="text-[10px] sm:text-[11px] text-slate-400 font-normal" id="status-label">Centered • Page 1 of 1</p>
+      </div>
     </div>
 
-    <div class="form-card">
-        <div class="title">Yarn Count Calculator</div>
-
-        <div class="input-group">
-            <label>🧵 Number of Yarns</label>
-            <input
-                type="number"
-                id="yarns"
-                placeholder="Enter number of yarns"
-                oninput="calculateCount()">
-        </div>
-
-        <div class="input-group">
-            <label>📏 Length of 1 Yarn (cm)</label>
-            <input
-                type="number"
-                id="length"
-                placeholder="Enter length in cm"
-                oninput="calculateCount()">
-        </div>
-
-        <div class="input-group">
-            <label>⚖️ Weight of All Yarns (g)</label>
-            <input
-                type="number"
-                id="weight"
-                placeholder="Enter weight in grams"
-                oninput="calculateCount()">
-        </div>
-
-        <div class="footer">
-            Formula: (0.0059 × Yarns × Length) ÷ Weight
-        </div>
+    <!-- Mode Toggle: Page Turn vs Move/Zoom -->
+    <div class="flex items-center gap-1 bg-dark-950/90 p-1 rounded-2xl border border-white/10 text-xs">
+      <button id="mode-turn-btn" onclick="setInteractionMode('turn')" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl font-medium transition bg-brand-600 text-white shadow-sm">
+        <i class="ph-bold ph-hand-pointing"></i>
+        <span class="hidden xs:inline sm:inline">Flip</span>
+      </button>
+      <button id="mode-pan-btn" onclick="setInteractionMode('pan')" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl font-medium transition text-slate-400 hover:text-white">
+        <i class="ph-bold ph-arrows-out-cardinal"></i>
+        <span class="hidden xs:inline sm:inline">Move/Zoom</span>
+      </button>
     </div>
 
-</div>
+    <!-- Right Header Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Fit Mode Toggle (Contain vs Fill/Cover) -->
+      <button id="fit-mode-btn" onclick="toggleFitMode()" title="Toggle Image Fit Mode (Contain / Fill)" class="px-2.5 py-1.5 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/10 flex items-center gap-1.5 text-xs text-slate-200 transition">
+        <i class="ph-bold ph-arrows-in-cardinal text-sm"></i>
+        <span id="fit-mode-text" class="hidden md:inline text-[11px]">Contain</span>
+      </button>
 
-<script>
-function calculateCount() {
+      <button onclick="toggleThumbnails()" title="Page Drawer" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/10 flex items-center justify-center text-slate-200 transition">
+        <i class="ph-bold ph-squares-four text-base sm:text-lg"></i>
+      </button>
 
-    const yarns = parseFloat(document.getElementById("yarns").value);
-    const length = parseFloat(document.getElementById("length").value);
-    const weight = parseFloat(document.getElementById("weight").value);
+      <label class="cursor-pointer">
+        <input type="file" id="file-input" accept="image/*" multiple class="hidden">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs sm:text-sm shadow-lg shadow-brand-600/30 transition active:scale-95">
+          <i class="ph-bold ph-plus"></i>
+          <span class="hidden sm:inline">Add Docs</span>
+          <span class="sm:hidden">Add</span>
+        </span>
+      </label>
+    </div>
+  </header>
 
-    if (
-        isNaN(yarns) ||
-        isNaN(length) ||
-        isNaN(weight) ||
-        weight <= 0
-    ) {
-        document.getElementById("result").textContent = "0.00";
-        return;
+  <main class="relative flex-1 w-full h-full overflow-hidden" id="viewport-wrapper">
+    
+    <!-- Floating Helper Hint banner -->
+    <div id="gesture-hint" class="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-3.5 py-1 bg-dark-900/90 border border-white/10 rounded-full text-[11px] text-slate-300 shadow-md backdrop-blur transition-opacity duration-300">
+      Drag sides to turn • Pinch or switch to Move mode to pan & zoom
+    </div>
+
+    <!-- Floating Canvas Controls (Zoom In, Zoom Out, Reset Center, View Tilt) -->
+    <div class="absolute right-3.5 top-3.5 z-20 flex flex-col gap-1.5 bg-dark-900/85 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-2xl">
+      <button onclick="zoomChange(0.18)" title="Zoom In" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 active:scale-90 transition flex items-center justify-center text-slate-200">
+        <i class="ph-bold ph-plus text-sm"></i>
+      </button>
+      <button onclick="zoomChange(-0.18)" title="Zoom Out" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 active:scale-90 transition flex items-center justify-center text-slate-200">
+        <i class="ph-bold ph-minus text-sm"></i>
+      </button>
+      <button onclick="resetPositionAndScale()" title="Center & Fit Book" class="w-8 h-8 rounded-xl bg-brand-600/30 text-brand-400 hover:bg-brand-600 hover:text-white active:scale-90 transition flex items-center justify-center">
+        <i class="ph-bold ph-arrows-in-simple text-sm"></i>
+      </button>
+      <button onclick="toggleSingleOrSpread()" title="Toggle View Angle" id="angle-btn" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 active:scale-90 transition flex items-center justify-center text-slate-200">
+        <i class="ph-bold ph-eye text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Main Viewport Canvas (Centered Anchor) -->
+    <div id="viewport" class="viewport-canvas mode-turn">
+      <!-- 3D Transformable Space -->
+      <div id="world" class="world-container">
+        <!-- 3D Spine Anchor: Always stays dead-center in the transform space -->
+        <div id="book-anchor" class="book-spine-anchor">
+          <!-- Realistic spine crease and soft book drop shadow -->
+          <div class="book-spine-crease"></div>
+          <div class="book-drop-shadow"></div>
+          
+          <!-- Dynamic Sheets injected here -->
+          <div id="sheets-container"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="relative z-30 flex items-center justify-between px-3 sm:px-5 py-2.5 bg-dark-900/85 backdrop-blur-md border-t border-white/10">
+    <div class="flex items-center gap-1.5">
+      <button onclick="flipPrev()" id="btn-prev" class="px-3 py-1.5 rounded-xl bg-dark-800 hover:bg-dark-700 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition text-xs font-semibold text-white flex items-center gap-1 border border-white/10">
+        <i class="ph-bold ph-caret-left text-base"></i>
+        <span>Prev</span>
+      </button>
+      <button onclick="flipNext()" id="btn-next" class="px-3 py-1.5 rounded-xl bg-dark-800 hover:bg-dark-700 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition text-xs font-semibold text-white flex items-center gap-1 border border-white/10">
+        <span>Next</span>
+        <i class="ph-bold ph-caret-right text-base"></i>
+      </button>
+    </div>
+
+    <!-- Sheet Tracker Indicator -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs font-medium text-slate-300" id="dock-page-text">Sheet 0 / 0</span>
+    </div>
+
+    <!-- Inspect & Clear actions -->
+    <div class="flex items-center gap-1.5">
+      <button onclick="inspectCurrentDocument()" title="Inspect Document Fullscreen" class="p-2 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/10 text-slate-200 active:scale-95 transition">
+        <i class="ph-bold ph-magnifying-glass-plus text-base"></i>
+      </button>
+      <button onclick="promptClearAll()" title="Clear All Documents" class="p-2 rounded-xl bg-red-900/20 hover:bg-red-900/50 text-red-300 border border-red-500/20 active:scale-95 transition">
+        <i class="ph-bold ph-trash text-base"></i>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Drawer Modal for Page Quick Jump -->
+  <div id="drawer-modal" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex justify-end">
+    <div class="relative w-full max-w-sm h-full bg-dark-900 border-l border-white/10 p-5 flex flex-col justify-between transform translate-x-full transition-transform duration-300" id="drawer-panel">
+      <div>
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div class="flex items-center gap-2">
+            <i class="ph-bold ph-stack text-brand-400 text-lg"></i>
+            <h3 class="text-sm font-semibold text-white">All Documents</h3>
+          </div>
+          <button onclick="toggleThumbnails()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5">
+            <i class="ph-bold ph-x text-lg"></i>
+          </button>
+        </div>
+        
+        <p class="text-xs text-slate-400 mt-2 mb-4">Tap any thumbnail to open and view the page.</p>
+        
+        <!-- Thumbnail Grid -->
+        <div id="thumbnails-grid" class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[70vh] pr-1">
+          <!-- Dynamic JS thumbnails -->
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-white/10 text-center">
+        <span id="doc-count-badge" class="text-xs text-slate-400">0 documents stored</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Document Inspector Modal -->
+  <div id="inspect-modal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-200 flex flex-col items-center justify-center p-3 sm:p-6">
+    <div class="absolute top-4 right-4 flex items-center gap-3 z-10">
+      <button onclick="closeInspector()" class="p-2.5 rounded-full bg-dark-800 text-white hover:bg-dark-700 transition">
+        <i class="ph-bold ph-x text-xl"></i>
+      </button>
+    </div>
+    <div class="max-w-5xl max-h-[90vh] w-full h-full flex flex-col items-center justify-center">
+      <img id="inspect-img" src="" alt="Inspect Document" class="max-h-full max-w-full object-contain rounded shadow-2xl">
+      <div id="inspect-caption" class="mt-3 text-xs sm:text-sm text-slate-300 font-medium">Page Inspection</div>
+    </div>
+  </div>
+
+  <script>
+    // Application State Store
+    const state = {
+      documents: [
+        {
+          id: 'starter-1',
+          title: 'Invoice & Billing Document',
+          src: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=90',
+          uploadedAt: new Date().toLocaleDateString()
+        },
+        {
+          id: 'starter-2',
+          title: 'Contract Agreement Form',
+          src: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=1200&q=90',
+          uploadedAt: new Date().toLocaleDateString()
+        }
+      ],
+      currentSheetIndex: 0,
+      totalSheets: 1,
+
+      // Pan & Zoom Coordinate World
+      panX: 0,
+      panY: 0,
+      scale: 1,
+      viewTilt: 8, // Subtle, natural angle
+      mode: 'turn', // 'turn' | 'pan'
+      fitMode: 'contain', // 'contain' | 'cover'
+
+      // Pointer / Drag Physics
+      isPointerDown: false,
+      pointerStartX: 0,
+      pointerStartY: 0,
+      activeSheetElem: null,
+      turnDirection: null, // 'next' or 'prev'
+      initialPinchDist: 0,
+      initialScale: 1
+    };
+
+    // DOM Elements
+    const viewport = document.getElementById('viewport');
+    const world = document.getElementById('world');
+    const sheetsContainer = document.getElementById('sheets-container');
+    const statusLabel = document.getElementById('status-label');
+    const dockPageText = document.getElementById('dock-page-text');
+    const fileInput = document.getElementById('file-input');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const modeTurnBtn = document.getElementById('mode-turn-btn');
+    const modePanBtn = document.getElementById('mode-pan-btn');
+    const fitModeBtn = document.getElementById('fit-mode-btn');
+    const fitModeText = document.getElementById('fit-mode-text');
+    const drawerModal = document.getElementById('drawer-modal');
+    const drawerPanel = document.getElementById('drawer-panel');
+    const thumbnailsGrid = document.getElementById('thumbnails-grid');
+    const docCountBadge = document.getElementById('doc-count-badge');
+    const inspectModal = document.getElementById('inspect-modal');
+    const inspectImg = document.getElementById('inspect-img');
+    const inspectCaption = document.getElementById('inspect-caption');
+
+    /* Build and render full-bleed 3D book pages */
+    function renderBook() {
+      sheetsContainer.innerHTML = '';
+
+      const docsCount = state.documents.length;
+      const innerSheetsCount = Math.max(1, Math.ceil(docsCount / 2));
+      state.totalSheets = 1 + innerSheetsCount; // Sheet 0 is cover, then pairs
+
+      if (state.currentSheetIndex >= state.totalSheets) {
+        state.currentSheetIndex = state.totalSheets - 1;
+      }
+
+      for (let i = 0; i < state.totalSheets; i++) {
+        const sheet = document.createElement('div');
+        sheet.className = `sheet ${i === 0 ? 'cover-front' : ''}`;
+        sheet.dataset.sheetIndex = i;
+
+        // Front and Back Faces
+        const front = document.createElement('div');
+        front.className = 'page-face front';
+
+        const back = document.createElement('div');
+        back.className = 'page-face back';
+
+        const frontShade = document.createElement('div');
+        frontShade.className = 'face-shade';
+        front.appendChild(frontShade);
+
+        const backShade = document.createElement('div');
+        backShade.className = 'face-shade';
+        back.appendChild(backShade);
+
+        if (i === 0) {
+          // Front: Book Cover
+          front.innerHTML += `
+            <div class="w-full h-full flex flex-col justify-between p-6 sm:p-8 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white relative">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] uppercase tracking-widest text-indigo-400 font-semibold">Organized Archive</span>
+                <i class="ph-bold ph-shield-check text-indigo-400 text-lg"></i>
+              </div>
+              <div class="my-auto text-center">
+                <div class="w-16 h-16 rounded-2xl bg-indigo-600/30 border border-indigo-400/40 mx-auto flex items-center justify-center mb-4 shadow-xl">
+                  <i class="ph-bold ph-folder-open text-3xl text-indigo-300"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white">3D Documents</h2>
+                <p class="text-xs text-indigo-200/80 mt-2 font-light">Swipe left to flip open</p>
+              </div>
+              <div class="flex items-center justify-between pt-4 border-t border-indigo-900/60 text-[11px] text-indigo-300">
+                <span>Documents: ${state.documents.length}</span>
+                <span>Binder #1</span>
+              </div>
+            </div>
+          `;
+
+          // Back of Cover: Document #0 or empty placeholder
+          back.innerHTML += buildFullPageContent(state.documents[0], 1, 0);
+        } else {
+          // Inner Pages
+          const frontDocIdx = (i - 1) * 2 + 1;
+          const backDocIdx = (i - 1) * 2 + 2;
+
+          front.innerHTML += buildFullPageContent(state.documents[frontDocIdx], frontDocIdx + 1, frontDocIdx);
+          back.innerHTML += buildFullPageContent(state.documents[backDocIdx], backDocIdx + 1, backDocIdx);
+        }
+
+        sheet.appendChild(front);
+        sheet.appendChild(back);
+        sheetsContainer.appendChild(sheet);
+      }
+
+      applySheetRotations();
+      updateStatusUI();
     }
 
-    const count =
-        (0.0059 * yarns * length) / weight;
+    /* Full-bleed, edge-to-edge document layout with non-intrusive hover badges */
+    function buildFullPageContent(doc, displayPageNumber, docIndex) {
+      const fitClass = state.fitMode === 'cover' ? 'object-cover' : 'object-contain';
 
-    document.getElementById("result").textContent =
-        count.toFixed(2);
-}
-</script>
+      if (doc) {
+        return `
+          <div class="w-full h-full relative group bg-slate-950 flex items-center justify-center overflow-hidden">
+            <!-- Full Bleed Image View -->
+            <img src="${doc.src}" alt="${doc.title}" class="w-full h-full ${fitClass} pointer-events-auto cursor-pointer" onclick="inspectDocByIndex(${docIndex})">
 
+            <!-- Subtle top floating badge for title & tools -->
+            <div class="absolute top-2 inset-x-2 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+              <span class="px-2 py-1 rounded bg-black/75 backdrop-blur text-white text-[11px] font-medium truncate max-w-[190px] shadow-sm">
+                ${doc.title || 'Document'}
+              </span>
+              <div class="flex items-center gap-1 pointer-events-auto">
+                <button onclick="event.stopPropagation(); inspectDocByIndex(${docIndex})" title="Zoom / Inspect" class="p-1.5 rounded-lg bg-black/75 hover:bg-black text-white text-xs shadow-sm">
+                  <i class="ph-bold ph-magnifying-glass-plus"></i>
+                </button>
+                <button onclick="event.stopPropagation(); removeDocument(${docIndex})" title="Remove Document" class="p-1.5 rounded-lg bg-red-900/80 hover:bg-red-800 text-white text-xs shadow-sm">
+                  <i class="ph-bold ph-trash-simple"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Discrete bottom corner page number indicator -->
+            <div class="absolute bottom-2.5 right-2.5 pointer-events-none z-20">
+              <span class="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur text-[10px] text-slate-300 font-semibold shadow border border-white/10">
+                p. ${displayPageNumber}
+              </span>
+            </div>
+          </div>
+        `;
+      }
+
+      // Clean empty placeholder slot
+      return `
+        <div class="w-full h-full flex flex-col items-center justify-center p-6 bg-dark-900 text-slate-400 border border-white/5 relative">
+          <div class="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-3">
+            <i class="ph-bold ph-file-dashed text-2xl text-slate-400"></i>
+          </div>
+          <p class="text-xs font-medium text-slate-300">Empty Page Slot</p>
+          <label class="mt-3 cursor-pointer">
+            <input type="file" accept="image/*" class="hidden" onchange="handleSingleUpload(event)">
+            <span class="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium transition inline-flex items-center gap-1.5 shadow">
+              <i class="ph-bold ph-upload-simple"></i> Upload Image
+            </span>
+          </label>
+          <span class="absolute bottom-3 right-3 text-[10px] text-slate-500 font-medium">Page ${displayPageNumber}</span>
+        </div>
+      `;
+    }
+
+    function applySheetRotations() {
+      const sheets = document.querySelectorAll('.sheet');
+      sheets.forEach((sheet, idx) => {
+        sheet.classList.remove('dragging');
+        const frontShade = sheet.querySelector('.page-face.front .face-shade');
+        const backShade = sheet.querySelector('.page-face.back .face-shade');
+
+        if (idx < state.currentSheetIndex) {
+          // Turned to left wing
+          sheet.style.transform = 'rotateY(-180deg)';
+          sheet.style.zIndex = 10 + idx;
+          if (frontShade) frontShade.style.opacity = '0';
+          if (backShade) backShade.style.opacity = '0';
+        } else {
+          // Resting on right wing
+          sheet.style.transform = 'rotateY(0deg)';
+          sheet.style.zIndex = 50 + (state.totalSheets - idx);
+          if (frontShade) frontShade.style.opacity = '0';
+          if (backShade) backShade.style.opacity = '0';
+        }
+      });
+      updateStatusUI();
+    }
+
+    function updateStatusUI() {
+      if (btnPrev) btnPrev.disabled = state.currentSheetIndex === 0;
+      if (btnNext) btnNext.disabled = state.currentSheetIndex >= state.totalSheets;
+
+      const pageStr = `Sheet ${state.currentSheetIndex} of ${state.totalSheets - 1}`;
+      if (statusLabel) statusLabel.textContent = `Centered • ${pageStr}`;
+      if (dockPageText) dockPageText.textContent = pageStr;
+    }
+
+    function updateWorldTransform() {
+      world.style.transform = `
+        translate3d(${state.panX}px, ${state.panY}px, 0)
+        scale(${state.scale})
+        rotateX(${state.viewTilt}deg)
+      `;
+    }
+
+    function resetPositionAndScale() {
+      world.classList.add('animating');
+      state.panX = 0;
+      state.panY = 0;
+
+      // Smart mobile adaptation scale so the book occupies optimum screen space
+      const w = window.innerWidth;
+      if (w < 480) {
+        state.scale = 0.92;
+      } else if (w < 768) {
+        state.scale = 0.98;
+      } else {
+        state.scale = 1.0;
+      }
+      state.viewTilt = 8;
+      updateWorldTransform();
+
+      setTimeout(() => {
+        world.classList.remove('animating');
+      }, 400);
+    }
+
+    function zoomChange(delta) {
+      state.scale = Math.min(Math.max(state.scale + delta, 0.4), 3.0);
+      updateWorldTransform();
+    }
+
+    function toggleSingleOrSpread() {
+      state.viewTilt = state.viewTilt > 0 ? 0 : 12;
+      updateWorldTransform();
+    }
+
+    function toggleFitMode() {
+      state.fitMode = state.fitMode === 'contain' ? 'cover' : 'contain';
+      if (fitModeText) fitModeText.textContent = state.fitMode === 'contain' ? 'Contain' : 'Fill';
+      renderBook();
+    }
+
+    function setInteractionMode(mode) {
+      state.mode = mode;
+      if (mode === 'turn') {
+        modeTurnBtn.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl font-medium transition bg-brand-600 text-white shadow-sm';
+        modePanBtn.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl font-medium transition text-slate-400 hover:text-white';
+        viewport.classList.add('mode-turn');
+        viewport.classList.remove('panning');
+      } else {
+        modePanBtn.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl font-medium transition bg-brand-600 text-white shadow-sm';
+        modeTurnBtn.className = 'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl font-medium transition text-slate-400 hover:text-white';
+        viewport.classList.remove('mode-turn');
+      }
+    }
+
+    function onPointerStart(e) {
+      // Ignore interactions on buttons, inputs, or inspector targets
+      if (e.target.closest('button') || e.target.closest('input') || e.target.closest('label')) {
+        return;
+      }
+
+      state.isPointerDown = true;
+      const clientX = e.clientX ?? (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY ?? (e.touches && e.touches[0].clientY);
+
+      state.pointerStartX = clientX;
+      state.pointerStartY = clientY;
+
+      // Two-Finger Pinch Detection for mobile zooming
+      if (e.touches && e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        state.initialPinchDist = Math.hypot(dx, dy);
+        state.initialScale = state.scale;
+        return;
+      }
+
+      if (state.mode === 'pan') {
+        viewport.classList.add('panning');
+        return;
+      }
+
+      // Mode: Turn page via finger swipe/drag
+      const anchorRect = document.getElementById('book-anchor').getBoundingClientRect();
+      const clickRelToSpine = clientX - anchorRect.left;
+
+      if (clickRelToSpine < 0 && state.currentSheetIndex > 0) {
+        // Flipping back from left wing to right wing
+        state.turnDirection = 'prev';
+        state.activeSheetElem = document.querySelector(`.sheet[data-sheet-index="${state.currentSheetIndex - 1}"]`);
+        if (state.activeSheetElem) {
+          state.activeSheetElem.classList.add('dragging');
+          state.activeSheetElem.style.zIndex = 200;
+        }
+      } else if (clickRelToSpine >= 0 && state.currentSheetIndex < state.totalSheets) {
+        // Flipping forward from right wing to left wing
+        state.turnDirection = 'next';
+        state.activeSheetElem = document.querySelector(`.sheet[data-sheet-index="${state.currentSheetIndex}"]`);
+        if (state.activeSheetElem) {
+          state.activeSheetElem.classList.add('dragging');
+          state.activeSheetElem.style.zIndex = 200;
+        }
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!state.isPointerDown) return;
+
+      // Pinch to Zoom
+      if (e.touches && e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        if (state.initialPinchDist > 0) {
+          const factor = dist / state.initialPinchDist;
+          state.scale = Math.min(Math.max(state.initialScale * factor, 0.4), 3.0);
+          updateWorldTransform();
+        }
+        return;
+      }
+
+      const clientX = e.clientX ?? (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY ?? (e.touches && e.touches[0].clientY);
+      const deltaX = clientX - state.pointerStartX;
+      const deltaY = clientY - state.pointerStartY;
+
+      if (state.mode === 'pan') {
+        // Drag to position the book anywhere on screen
+        state.panX += deltaX;
+        state.panY += deltaY;
+        state.pointerStartX = clientX;
+        state.pointerStartY = clientY;
+        updateWorldTransform();
+        return;
+      }
+
+      // 3D Page Turn Drag Physics
+      if (!state.activeSheetElem) return;
+
+      const sheetWidth = state.activeSheetElem.offsetWidth || 320;
+      const frontShade = state.activeSheetElem.querySelector('.page-face.front .face-shade');
+      const backShade = state.activeSheetElem.querySelector('.page-face.back .face-shade');
+
+      if (state.turnDirection === 'next') {
+        const progress = Math.min(Math.max(-deltaX / sheetWidth, 0), 1);
+        const deg = -progress * 180;
+        state.activeSheetElem.style.transform = `rotateY(${deg}deg)`;
+
+        if (frontShade) frontShade.style.opacity = Math.sin(progress * Math.PI) * 0.4;
+        if (backShade) backShade.style.opacity = Math.sin(progress * Math.PI) * 0.4;
+      } else if (state.turnDirection === 'prev') {
+        const progress = Math.min(Math.max(deltaX / sheetWidth, 0), 1);
+        const deg = -180 + (progress * 180);
+        state.activeSheetElem.style.transform = `rotateY(${deg}deg)`;
+
+        if (frontShade) frontShade.style.opacity = Math.sin(progress * Math.PI) * 0.4;
+        if (backShade) backShade.style.opacity = Math.sin(progress * Math.PI) * 0.4;
+      }
+    }
+
+    function onPointerEnd(e) {
+      if (!state.isPointerDown) return;
+      state.isPointerDown = false;
+      viewport.classList.remove('panning');
+
+      if (state.mode === 'pan' || !state.activeSheetElem) {
+        state.activeSheetElem = null;
+        state.turnDirection = null;
+        return;
+      }
+
+      const clientX = e.clientX ?? (e.changedTouches && e.changedTouches[0].clientX) ?? state.pointerStartX;
+      const deltaX = clientX - state.pointerStartX;
+      const threshold = 45; // Gesture threshold to confirm flip
+
+      if (state.turnDirection === 'next') {
+        if (-deltaX > threshold && state.currentSheetIndex < state.totalSheets) {
+          state.currentSheetIndex++;
+        }
+      } else if (state.turnDirection === 'prev') {
+        if (deltaX > threshold && state.currentSheetIndex > 0) {
+          state.currentSheetIndex--;
+        }
+      }
+
+      state.activeSheetElem = null;
+      state.turnDirection = null;
+      applySheetRotations();
+    }
+
+    function flipNext() {
+      if (state.currentSheetIndex < state.totalSheets) {
+        state.currentSheetIndex++;
+        applySheetRotations();
+      }
+    }
+
+    function flipPrev() {
+      if (state.currentSheetIndex > 0) {
+        state.currentSheetIndex--;
+        applySheetRotations();
+      }
+    }
+
+    function flipToSheet(index) {
+      state.currentSheetIndex = Math.min(Math.max(index, 0), state.totalSheets - 1);
+      applySheetRotations();
+      toggleThumbnails(false);
+    }
+
+    // Multiple file upload
+    fileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+
+      let remaining = files.length;
+      files.forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          state.documents.push({
+            id: 'doc_' + Date.now() + '_' + i,
+            title: file.name.replace(/\.[^/.]+$/, ''),
+            src: event.target.result,
+            uploadedAt: new Date().toLocaleDateString()
+          });
+          remaining--;
+          if (remaining === 0) {
+            renderBook();
+            renderThumbnailsGrid();
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+      e.target.value = '';
+    });
+
+    // Single slot upload
+    function handleSingleUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        state.documents.push({
+          id: 'doc_' + Date.now(),
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          src: event.target.result,
+          uploadedAt: new Date().toLocaleDateString()
+        });
+        renderBook();
+        renderThumbnailsGrid();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeDocument(index) {
+      if (index >= 0 && index < state.documents.length) {
+        state.documents.splice(index, 1);
+        renderBook();
+        renderThumbnailsGrid();
+      }
+    }
+
+    function promptClearAll() {
+      if (state.documents.length === 0) return;
+      // Confirmation dialog without using blocked alert()
+      const confirmed = window.confirm("Are you sure you want to remove all documents from the book?");
+      if (confirmed) {
+        state.documents = [];
+        state.currentSheetIndex = 0;
+        renderBook();
+        renderThumbnailsGrid();
+      }
+    }
+
+    function toggleThumbnails(forceOpen) {
+      const isOpen = drawerModal.classList.contains('opacity-100');
+      const targetState = forceOpen !== undefined ? forceOpen : !isOpen;
+
+      if (targetState) {
+        renderThumbnailsGrid();
+        drawerModal.classList.remove('pointer-events-none', 'opacity-0');
+        drawerModal.classList.add('opacity-100');
+        drawerPanel.classList.remove('translate-x-full');
+      } else {
+        drawerModal.classList.add('opacity-0', 'pointer-events-none');
+        drawerModal.classList.remove('opacity-100');
+        drawerPanel.classList.add('translate-x-full');
+      }
+    }
+
+    function renderThumbnailsGrid() {
+      thumbnailsGrid.innerHTML = '';
+      docCountBadge.textContent = `${state.documents.length} documents archived`;
+
+      // Cover preview thumbnail
+      const coverItem = document.createElement('div');
+      coverItem.className = 'cursor-pointer p-2 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/5 flex flex-col items-center text-center transition';
+      coverItem.onclick = () => flipToSheet(0);
+      coverItem.innerHTML = `
+        <div class="w-full h-24 rounded bg-indigo-950 flex items-center justify-center text-indigo-300 font-bold text-xs border border-indigo-500/30">
+          COVER
+        </div>
+        <span class="text-[11px] font-medium text-slate-300 mt-1.5">Book Cover</span>
+      `;
+      thumbnailsGrid.appendChild(coverItem);
+
+      // Doc thumbnails
+      state.documents.forEach((doc, idx) => {
+        const item = document.createElement('div');
+        item.className = 'cursor-pointer p-2 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/5 flex flex-col items-center transition';
+        const sheetTarget = Math.floor((idx + 1) / 2);
+        item.onclick = () => flipToSheet(Math.min(sheetTarget, state.totalSheets - 1));
+
+        item.innerHTML = `
+          <div class="w-full h-24 rounded bg-slate-900 overflow-hidden flex items-center justify-center border border-white/10">
+            <img src="${doc.src}" class="w-full h-full object-cover">
+          </div>
+          <span class="text-[11px] font-medium text-slate-200 mt-1 truncate w-full text-center">${doc.title}</span>
+          <span class="text-[9px] text-slate-400">p. ${idx + 1}</span>
+        `;
+        thumbnailsGrid.appendChild(item);
+      });
+    }
+
+    function inspectDocByIndex(index) {
+      const doc = state.documents[index];
+      if (!doc) return;
+      inspectImg.src = doc.src;
+      inspectCaption.textContent = `${doc.title} (Page ${index + 1})`;
+      inspectModal.classList.remove('opacity-0', 'pointer-events-none');
+      inspectModal.classList.add('opacity-100');
+    }
+
+    function inspectCurrentDocument() {
+      let candidate = null;
+      if (state.currentSheetIndex > 0) {
+        const docIdx = (state.currentSheetIndex - 1) * 2;
+        candidate = state.documents[docIdx] || state.documents[docIdx - 1];
+      } else {
+        candidate = state.documents[0];
+      }
+
+      if (candidate) {
+        inspectImg.src = candidate.src;
+        inspectCaption.textContent = candidate.title || 'Document Inspection';
+        inspectModal.classList.remove('opacity-0', 'pointer-events-none');
+        inspectModal.classList.add('opacity-100');
+      }
+    }
+
+    function closeInspector() {
+      inspectModal.classList.add('opacity-0', 'pointer-events-none');
+      inspectModal.classList.remove('opacity-100');
+    }
+
+    // Attach interaction events
+    viewport.addEventListener('mousedown', onPointerStart);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerEnd);
+
+    viewport.addEventListener('touchstart', onPointerStart, { passive: false });
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerEnd);
+
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.09 : -0.09;
+      zoomChange(delta);
+    }, { passive: false });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') flipNext();
+      if (e.key === 'ArrowLeft') flipPrev();
+      if (e.key === 'Escape') {
+        closeInspector();
+        toggleThumbnails(false);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      resetPositionAndScale();
+    });
+
+    // Boot
+    window.addEventListener('DOMContentLoaded', () => {
+      renderBook();
+      resetPositionAndScale();
+
+      setTimeout(() => {
+        const hint = document.getElementById('gesture-hint');
+        if (hint) hint.style.opacity = '0';
+      }, 4000);
+    });
+  </script>
 </body>
 </html>
